@@ -83,40 +83,4 @@ if st.button('Recommend'):
         st.text(names[4])
         st.image(posters[4])
 
-        import os
-        import zipfile
-        import requests
-
-
-        def download_and_extract_files():
-            # List of URLs to your zip parts hosted on GitHub
-            zip_parts = [
-                "https://github.com/your_username/your_repo/raw/main/part1.zip",
-                "https://github.com/your_username/your_repo/raw/main/part2.zip",
-                # Add all parts here
-            ]
-
-            # Create a directory to store the downloaded files
-            os.makedirs("data", exist_ok=True)
-
-            # Download each part
-            for i, url in enumerate(zip_parts):
-                print(f"Downloading {url}...")
-                response = requests.get(url)
-                with open(f"data/part{i + 1}.zip", "wb") as f:
-                    f.write(response.content)
-
-            # Combine the zip files into the original .pkl file
-            with open("data/similarity.pkl", "wb") as outfile:
-                for i in range(len(zip_parts)):
-                    with open(f"data/part{i + 1}.zip", "rb") as infile:
-                        outfile.write(infile.read())
-
-            # Extract the similarity.pkl if needed
-            with zipfile.ZipFile("data/similarity.pkl", "r") as zip_ref:
-                zip_ref.extractall("data")
-
-
-        # Call the function to download and extract the files
-        if not os.path.exists("data/similarity.pkl"):
-            download_and_extract_files()
+       
