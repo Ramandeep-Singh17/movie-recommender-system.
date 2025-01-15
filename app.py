@@ -20,7 +20,7 @@ def merge_files(output_file, input_files):
     except Exception as e:
         st.error(f"Error during file merging: {e}")
 
-# List of 20 split files
+# List of split files
 split_files = [
     "similarity_chunk_2.zip.001", "similarity_chunk_2.zip.002", "similarity_chunk_2.zip.003", "similarity_chunk_2.zip.004",
     "similarity_chunk_2.zip.005", "similarity_chunk_2.zip.006", "similarity_chunk_2.zip.007", "similarity_chunk_2.zip.008",
@@ -40,7 +40,7 @@ if os.path.exists("similarity.pkl"):
     try:
         with open('similarity.pkl', 'rb') as f:
             similarity = pickle.load(f)
-        st.info("Similarity.pkl loaded successfully!")
+        st.info("similarity.pkl loaded successfully!")
     except Exception as e:
         st.error(f"Error loading similarity.pkl: {e}")
 else:
@@ -60,29 +60,35 @@ def fetch_poster(movie_id):
         else:
             return "https://via.placeholder.com/500x750?text=No+Image"
     except Exception as e:
-        return "https://via.placeholder.com/500x750?text=No+Image"  # In case of any error, return a placeholder image
+        return "https://via.placeholder.com/500x750?text=No+Image"  # Return a placeholder image in case of error
 
 # Function to recommend movies based on similarity
 def recommend(movie):
-    movie_index = movies[movies['title'] == movie].index[0]
-    distances = similarity[movie_index]
+    try:
+        movie_index = movies[movies['title'] == movie].index[0]
+        distances = similarity[movie_index]
 
-    movies_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
+        movies_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
 
-    recommended_movies = []
-    recommended_movies_posters = []
+        recommended_movies = []
+        recommended_movies_posters = []
 
-    for i in movies_list:
-        movie_id = movies.iloc[i[0]].id
-        recommended_movies.append(movies.iloc[i[0]].title)
-        recommended_movies_posters.append(fetch_poster(movie_id))
+        for i in movies_list:
+            movie_id = movies.iloc[i[0]].id
+            recommended_movies.append(movies.iloc[i[0]].title)
+            recommended_movies_posters.append(fetch_poster(movie_id))
 
-    return recommended_movies, recommended_movies_posters
+        return recommended_movies, recommended_movies_posters
+    except Exception as e:
+        st.error(f"Error in recommendation: {e}")
+        return [], []
 
 # Load the movies data
 try:
-    movies_dict = pickle.load(open('movies_dict.pkl', 'rb'))
+    with open('movies_dict.pkl', 'rb') as f:
+        movies_dict = pickle.load(f)
     movies = pd.DataFrame(movies_dict)
+    st.info("movies_dict.pkl loaded successfully!")
 except FileNotFoundError:
     st.error("movies_dict.pkl file not found. Please upload the movies data.")
     movies = pd.DataFrame()
@@ -90,32 +96,38 @@ except FileNotFoundError:
 # Streamlit app code
 st.title('Movie Recommender System')
 
-selected_movie_name = st.selectbox("Choose a movie:", movies['title'].values)
+if not movies.empty:
+    selected_movie_name = st.selectbox("Choose a movie:", movies['title'].values)
 
-if st.button('Recommend'):
-    if similarity is not None and not movies.empty:
-        names, posters = recommend(selected_movie_name)
+    if st.button('Recommend'):
+        if similarity is not None:
+            names, posters = recommend(selected_movie_name)
 
-        col1, col2, col3, col4, col5 = st.columns(5)
+            if names:
+                col1, col2, col3, col4, col5 = st.columns(5)
 
-        with col1:
-            st.text(names[0])
-            st.image(posters[0])
+                with col1:
+                    st.text(names[0])
+                    st.image(posters[0])
 
-        with col2:
-            st.text(names[1])
-            st.image(posters[1])
+                with col2:
+                    st.text(names[1])
+                    st.image(posters[1])
 
-        with col3:
-            st.text(names[2])
-            st.image(posters[2])
+                with col3:
+                    st.text(names[2])
+                    st.image(posters[2])
 
-        with col4:
-            st.text(names[3])
-            st.image(posters[3])
+                with col4:
+                    st.text(names[3])
+                    st.image(posters[3])
 
-        with col5:
-            st.text(names[4])
-            st.image(posters[4])
-    else:
-        st.error("Similarity data or movie data not available. Please check the files.")
+                with col5:
+                    st.text(names[4])
+                    st.image(posters[4])
+            else:
+                st.error("No recommendations could be generated.")
+        else:
+            st.error("Similarity data is not available. Please check the files.")
+else:
+    st.error("Movies data is empty. Please upload valid movies data.")
