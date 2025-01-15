@@ -2,7 +2,57 @@ import pandas as pd
 import streamlit as st
 import pickle
 import requests
+import os
 
+# Function to merge split files into a single file
+def merge_files(output_file, input_files):
+    """
+    Merge split files into one complete file.
+    :param output_file: The name of the final merged file.
+    :param input_files: List of split files to merge.
+    """
+    with open(output_file, 'wb') as outfile:
+        for part_file in input_files:
+            with open(part_file, 'rb') as infile:
+                outfile.write(infile.read())
+
+# List of 20 split files
+split_files = [
+    "similarity_chunk_2.zip.001",
+    "similarity_chunk_2.zip.002",
+    "similarity_chunk_2.zip.003",
+    "similarity_chunk_2.zip.004",
+    "similarity_chunk_2.zip.005",
+    "similarity_chunk_2.zip.006",
+    "similarity_chunk_2.zip.007",
+    "similarity_chunk_2.zip.008",
+    "similarity_chunk_2.zip.009",
+    "similarity_chunk_2.zip.010",
+    "similarity_chunk_2.zip.011",
+    "similarity_chunk_2.zip.012",
+    "similarity_chunk_2.zip.013",
+    "similarity_chunk_2.zip.014",
+    "similarity_chunk_2.zip.015",
+    "similarity_chunk_2.zip.016",
+    "similarity_chunk_2.zip.017",
+    "similarity_chunk_2.zip.018",
+    "similarity_chunk_2.zip.019",
+    "similarity_chunk_2.zip.020",
+]
+
+# Merge files if similarity.pkl doesn't already exist
+if not os.path.exists("similarity.pkl"):
+    st.info("Merging split files into similarity.pkl...")
+    merge_files("similarity.pkl", split_files)
+    st.success("Merging complete!")
+
+# Load the similarity.pkl file
+try:
+    similarity = pickle.load(open('similarity.pkl', 'rb'))
+    st.info("Similarity.pkl loaded successfully!")
+except FileNotFoundError:
+    st.error("Error: similarity.pkl not found. Ensure split files are available.")
+    similarity = None
 
 # Function to fetch movie poster
 def fetch_poster(movie_id):
@@ -44,43 +94,39 @@ def recommend(movie):
     return recommended_movies, recommended_movies_posters
 
 
-# Load the movies data and similarity matrix
+# Load the movies data
 movies_dict = pickle.load(open('movies_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
 
-similarity = pickle.load(open('similarity.pkl', 'rb'))
-
-# Streamlit UI setup
+# Streamlit app code
 st.title('Movie Recommender System')
 
-# Dropdown menu to select a movie
-selected_movie_name = st.selectbox("How would you like to be contacted?", movies['title'].values)
+selected_movie_name = st.selectbox("Choose a movie:", movies['title'].values)
 
-# When the button is clicked, recommend movies
 if st.button('Recommend'):
-    names, posters = recommend(selected_movie_name)
+    if similarity is not None:
+        names, posters = recommend(selected_movie_name)
 
-    # Display the recommendations in columns
-    col1, col2, col3, col4, col5 = st.columns(5)
+        col1, col2, col3, col4, col5 = st.columns(5)
 
-    with col1:
-        st.text(names[0])
-        st.image(posters[0])
+        with col1:
+            st.text(names[0])
+            st.image(posters[0])
 
-    with col2:
-        st.text(names[1])
-        st.image(posters[1])
+        with col2:
+            st.text(names[1])
+            st.image(posters[1])
 
-    with col3:
-        st.text(names[2])
-        st.image(posters[2])
+        with col3:
+            st.text(names[2])
+            st.image(posters[2])
 
-    with col4:
-        st.text(names[3])
-        st.image(posters[3])
+        with col4:
+            st.text(names[3])
+            st.image(posters[3])
 
-    with col5:
-        st.text(names[4])
-        st.image(posters[4])
-
-       
+        with col5:
+            st.text(names[4])
+            st.image(posters[4])
+    else:
+        st.error("Similarity data not available. Please check the files.")
