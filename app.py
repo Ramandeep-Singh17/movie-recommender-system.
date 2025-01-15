@@ -38,6 +38,7 @@ if not os.path.exists("similarity.pkl"):
 similarity = None
 if os.path.exists("similarity.pkl"):
     try:
+        # Load using pickle
         with open('similarity.pkl', 'rb') as f:
             similarity = pickle.load(f)
         st.info("similarity.pkl loaded successfully!")
@@ -59,7 +60,7 @@ def fetch_poster(movie_id):
             return f"https://image.tmdb.org/t/p/w500/{poster_path}"
         else:
             return "https://via.placeholder.com/500x750?text=No+Image"
-    except Exception as e:
+    except Exception:
         return "https://via.placeholder.com/500x750?text=No+Image"  # Return a placeholder image in case of error
 
 # Function to recommend movies based on similarity
@@ -104,27 +105,11 @@ if not movies.empty:
             names, posters = recommend(selected_movie_name)
 
             if names:
-                col1, col2, col3, col4, col5 = st.columns(5)
-
-                with col1:
-                    st.text(names[0])
-                    st.image(posters[0])
-
-                with col2:
-                    st.text(names[1])
-                    st.image(posters[1])
-
-                with col3:
-                    st.text(names[2])
-                    st.image(posters[2])
-
-                with col4:
-                    st.text(names[3])
-                    st.image(posters[3])
-
-                with col5:
-                    st.text(names[4])
-                    st.image(posters[4])
+                cols = st.columns(5)
+                for idx, col in enumerate(cols):
+                    if idx < len(names):
+                        col.text(names[idx])
+                        col.image(posters[idx])
             else:
                 st.error("No recommendations could be generated.")
         else:
