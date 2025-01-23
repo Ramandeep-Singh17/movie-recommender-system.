@@ -3,6 +3,7 @@ import requests
 import pickle
 import pandas as pd
 import streamlit as st
+import joblib  # Use joblib for handling large files
 
 # Function to merge split files into a single file
 def merge_files(output_file, input_files):
@@ -14,8 +15,12 @@ def merge_files(output_file, input_files):
     try:
         with open(output_file, 'wb') as outfile:
             for part_file in input_files:
-                with open(part_file, 'rb') as infile:
-                    outfile.write(infile.read())
+                if os.path.exists(part_file):
+                    with open(part_file, 'rb') as infile:
+                        outfile.write(infile.read())
+                    st.write(f"Merged {part_file}")
+                else:
+                    st.error(f"File not found: {part_file}")
         st.success("Merging complete!")
     except Exception as e:
         st.error(f"Error during file merging: {e}")
@@ -34,16 +39,15 @@ if not os.path.exists("similarity.pkl"):
     st.info("Merging split files into similarity.pkl...")
     merge_files("similarity.pkl", split_files)
 
-# Load the similarity.pkl file
+# Load the similarity.pkl file using joblib (more efficient for large files)
 similarity = None
 if os.path.exists("similarity.pkl"):
     try:
-        # Load using pickle
-        with open('similarity.pkl', 'rb') as f:
-            similarity = pickle.load(f)
-        st.info("similarity.pkl loaded successfully!")
+        # Use joblib to load the large similarity.pkl file
+        similarity = joblib.load('similarity.pkl')
+        st.info("similarity.pkl loaded successfully with joblib!")
     except Exception as e:
-        st.error(f"Error loading similarity.pkl: {e}")
+        st.error(f"Error loading similarity.pkl with joblib: {e}")
 else:
     st.error("similarity.pkl file not found. Please upload or merge the split files.")
 
