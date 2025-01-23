@@ -1,8 +1,8 @@
+import os
+import requests
+import pickle
 import pandas as pd
 import streamlit as st
-import pickle
-import requests
-import os
 
 # Function to merge split files into a single file
 def merge_files(output_file, input_files):
@@ -20,7 +20,7 @@ def merge_files(output_file, input_files):
     except Exception as e:
         st.error(f"Error during file merging: {e}")
 
-# List of split files
+# List of split files (ensure these paths are correct relative to your app)
 split_files = [
     "similarity_chunk_2.zip.001", "similarity_chunk_2.zip.002", "similarity_chunk_2.zip.003", "similarity_chunk_2.zip.004",
     "similarity_chunk_2.zip.005", "similarity_chunk_2.zip.006", "similarity_chunk_2.zip.007", "similarity_chunk_2.zip.008",
